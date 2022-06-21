@@ -1,6 +1,20 @@
 import ReconnectingWebSocket from 'reconnecting-websocket';
 import {WebSocketServer, WebSocket} from 'ws';
+
+/**
+ * # Cable client
+ *
+ * @export Cable Client class
+ * @class Cable
+ */
 export class Cable {
+  /**
+   * Creates an instance of Cable.
+   * @param {string} [addr="localhost"] Cable server address
+   * @param {number} [port=3000] Cable server port
+   * @param {boolean} [secure=false] Cable server websocket ssl enabled
+   * @memberof Cable
+   */
   constructor(addr = "localhost", port = 3000, secure = false) {
     this.addr = addr;
     this.port = port;
@@ -23,15 +37,29 @@ export class Cable {
 
   onmessage(event) {
     const message = JSON.parse(event.data);
-    if (message.identifier) {
+    if (message.identifier&&this.subscriptions[message.identifier]) {
       this.subscriptions[message.identifier](message.data);
     }
   }
 
+  /**
+   * ### Listen for messages with the given identifier
+   *
+   * @param {*} identifier Identifier of the message
+   * @param {*} callback Callback if the message has correct identifier
+   * @memberof Cable
+   */
   subscribe(identifier, callback) {
     this.subscriptions[identifier] = callback;
   }
 
+  /**
+   * ### Send a message to cable server
+   *
+   * @param {*} identifier Identifier of the message
+   * @param {*} data Message content
+   * @memberof Cable
+   */
   send(identifier, data) {
     const message = { identifier, data };
     if (this.connection.readyState === 1) {
@@ -42,6 +70,12 @@ export class Cable {
   }
 };
 
+/**
+ * # Cable server
+ *
+ * @export Cable Server class
+ * @class CableServer
+ */
 export class CableServer {
   constructor(port = 3000, secure = false) {
     this.subscriptions = {};
@@ -49,17 +83,31 @@ export class CableServer {
     this.server.on('connection', (connection) => {
       connection.on('message', (message) => {
         const parsedMessage = JSON.parse(message);
-        if (parsedMessage.identifier) {
+        if (parsedMessage.identifier&&this.subscriptions[parsedMessage.identifier]) {
           this.subscriptions[parsedMessage.identifier](parsedMessage.data);
         }
       });
     });
   }
 
+  /**
+   * ### Listen for messages with the given identifier
+   *
+   * @param {*} identifier Identifier of the message
+   * @param {*} callback Callback if the message has correct identifier
+   * @memberof Cable
+   */
   subscribe(identifier, callback) {
     this.subscriptions[identifier] = callback;
   }
 
+  /**
+   * ### Send a message to cable clients
+   *
+   * @param {*} identifier Identifier of the message
+   * @param {*} data Message content
+   * @memberof Cable
+   */
   send(identifier, data) {
     const message = { identifier, data };
     this.server.clients.forEach((client) => {
