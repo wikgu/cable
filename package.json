@@ -1,6 +1,6 @@
 {
   "name": "@wikgu/cable",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Connects Node.JS servers",
   "main": "index.js",
   "repository": "https://github.com/wikgu/cable",
