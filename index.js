@@ -37,7 +37,9 @@ export class Cable {
     this.messageBuffer = [];
   }
 
-  onclose() {}
+  onclose() {
+    // User defined event handling
+  }
 
   onmessage(event) {
     const message = JSON.parse(event.data);
