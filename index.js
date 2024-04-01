@@ -1,5 +1,5 @@
-import ReconnectingWebSocket from 'reconnecting-websocket';
-import {WebSocketServer, WebSocket} from 'ws';
+import ReconnectingWebSocket from "reconnecting-websocket";
+import { WebSocketServer, WebSocket } from "ws";
 
 /**
  * # Cable client
@@ -21,7 +21,11 @@ export class Cable {
     this.secure = secure;
     this.subscriptions = {};
     this.messageBuffer = [];
-    this.connection = new ReconnectingWebSocket(`ws${this.secure ? "s" : ""}://${this.addr}:${this.port}`, [], { WebSocket });
+    this.connection = new ReconnectingWebSocket(
+      `ws${this.secure ? "s" : ""}://${this.addr}:${this.port}`,
+      [],
+      { WebSocket }
+    );
     this.connection.onerror = this.onclose.bind(this);
     this.connection.onmessage = this.onmessage.bind(this);
     this.connection.onopen = this.onopen.bind(this);
@@ -29,15 +33,15 @@ export class Cable {
   }
 
   onopen() {
-    this.messageBuffer.forEach(message => this.connection.send(message));
+    this.messageBuffer.forEach((message) => this.connection.send(message));
     this.messageBuffer = [];
   }
 
-  onclose() { }
+  onclose() {}
 
   onmessage(event) {
     const message = JSON.parse(event.data);
-    if (message.identifier&&this.subscriptions[message.identifier]) {
+    if (message.identifier && this.subscriptions[message.identifier]) {
       this.subscriptions[message.identifier](message.data);
     }
   }
@@ -68,7 +72,7 @@ export class Cable {
       this.messageBuffer.push(JSON.stringify(message));
     }
   }
-};
+}
 
 /**
  * # Cable server
@@ -77,13 +81,16 @@ export class Cable {
  * @class CableServer
  */
 export class CableServer {
-  constructor(port = 3000, secure = false) {
+  constructor(port = 3000) {
     this.subscriptions = {};
     this.server = new WebSocketServer({ port });
-    this.server.on('connection', (connection) => {
-      connection.on('message', (message) => {
+    this.server.on("connection", (connection) => {
+      connection.on("message", (message) => {
         const parsedMessage = JSON.parse(message);
-        if (parsedMessage.identifier&&this.subscriptions[parsedMessage.identifier]) {
+        if (
+          parsedMessage.identifier &&
+          this.subscriptions[parsedMessage.identifier]
+        ) {
           this.subscriptions[parsedMessage.identifier](parsedMessage.data);
         }
       });
